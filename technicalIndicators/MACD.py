@@ -25,7 +25,7 @@ sell (short) the security when the MACD crosses below the signal line
 # %% 1. Function definition
 
 
-def MACD(ohlcv, fastEMA=12, slowEMA=26, signalEMA=9, returnEMAs=None):
+def MACD(ohlcv, fastEMA=12, slowEMA=26, signalEMA=9, returnEMAs=False):
     """
     Parameters
     ----------
@@ -58,17 +58,14 @@ def MACD(ohlcv, fastEMA=12, slowEMA=26, signalEMA=9, returnEMAs=None):
 
     # Don't want to make any actual changes to the original data
     df = ohlcv.copy()
-    price = df['Adj Close']
 
-    if returnEMAs is None:  # If nothing is specified...
-        fastMA = price.ewm(span=fastEMA, min_periods=fastEMA).mean()
-        slowMA = price.ewm(span=slowEMA, min_periods=slowEMA).mean()
-        df['macd'] = fastMA - slowMA
-        df['signal'] = df['macd'].ewm(span=signalEMA, min_periods=signalEMA).mean()
-    else:  # If a 'fullReturn' is specified then give the EMAs back in the df
-        df['fastMA'] = price.ewm(span=fastEMA, min_periods=fastEMA).mean()
-        df['slowMA'] = price.ewm(span=slowEMA, min_periods=slowEMA).mean()
-        df['macd'] = df['fastMA'] - df['slowMA']
-        df['signal'] = df['macd'].ewm(span=signalEMA, min_periods=signalEMA).mean()
+    df['fastMA'] = df['Adj Close'].ewm(span=fastEMA, min_periods=fastEMA).mean()
+    df['slowMA'] = df['Adj Close'].ewm(span=slowEMA, min_periods=slowEMA).mean()
+    df['macd'] = df['fastMA'] - df['slowMA']
+    df['signal'] = df['macd'].ewm(span=signalEMA, min_periods=signalEMA).mean()
 
-    return df
+    if returnEMAs is False:
+        df.drop(['fastMA', 'slowMA'], axis=1, inplace=True)
+        return df
+    else:
+        return df
