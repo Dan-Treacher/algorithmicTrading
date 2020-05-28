@@ -18,9 +18,11 @@ Created on %(date)s
 import alpaca_trade_api as tradeapi
 import pandas as pd
 import numpy as np
-import string
+import matplotlib.pyplot as plt
+# from sklearn.linear_model import LinearRegression
 
 # Move to correct directory for importing technical indicators
+import sys
 import os
 os.chdir('C:\\Users\\Dan\\Documents\\GitHub\\algorithmicTrading')
 
@@ -66,6 +68,20 @@ for ticker in tickers:
         print('Error encountered pulling ohlcv data for {:s}'.format(ticker))
 
 
+# %% 4. Plot some of the indicators to check it's working
+
+test = MACD(data['MSFT'])  # Placeholder for one of the ticker dataframes
+
+fig, ax = plt.subplots()
+ax.plot(test['close'], color='blue', label='close')
+plt.legend()
+ax2 = ax.twinx()
+ax2.plot(MACD(test)['macd'], color='red', label='macd')
+plt.legend()
+plt.show()
+
+
+# %% X.
 
 '''
 This is how to place an order using the api command
@@ -86,3 +102,6 @@ api.submit_order(
     )
 )
 '''
+
+
+
