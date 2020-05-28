@@ -45,10 +45,11 @@ def ATR(ohlcv, simpleMovingAverage=14, returnAllRanges=False):
     """
 
     df = ohlcv.copy()
-
-    df['H-L'] = abs(df['High'] - df['Low'])
-    df['H-PC'] = abs(df['High'] - df['Close'].shift(1))
-    df['L-PC'] = abs(df['Low'] - df['Close'].shift(1))
+    df.columns = map(str.lower, df.columns)  # Force columns names lowercase
+    
+    df['H-L'] = abs(df['high'] - df['low'])
+    df['H-PC'] = abs(df['high'] - df['close'].shift(1))
+    df['L-PC'] = abs(df['low'] - df['close'].shift(1))
     df['TR'] = df[['H-L', 'H-PC', 'L-PC']].max(axis=1, skipna=False)
     df['ATR'] = df['TR'].rolling(window=simpleMovingAverage).mean()
 

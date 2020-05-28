@@ -58,9 +58,16 @@ def MACD(ohlcv, fastEMA=12, slowEMA=26, signalEMA=9, returnEMAs=False):
 
     # Don't want to make any actual changes to the original data
     df = ohlcv.copy()
+    df.columns = map(str.lower, df.columns)  # Force columns names lowercase
 
-    df['fastMA'] = df['Adj Close'].ewm(span=fastEMA, min_periods=fastEMA).mean()
-    df['slowMA'] = df['Adj Close'].ewm(span=slowEMA, min_periods=slowEMA).mean()
+    # Need to pick out the correct column - there might not be an 'Adj Close'
+    lowerCaseColumns = [string.lower() for string in ohlcv.columns.tolist()]
+    alternatives = ['adj close', 'close']
+    close = [s for s in df.columns.tolist() if any(xs in s for xs in alternatives)]
+
+    # Take the first matching string as this will be adjusted close if available
+    df['fastMA'] = df[close[0]].ewm(span=fastEMA, min_periods=fastEMA).mean()
+    df['slowMA'] = df[close[0]].ewm(span=slowEMA, min_periods=slowEMA).mean()
     df['macd'] = df['fastMA'] - df['slowMA']
     df['signal'] = df['macd'].ewm(span=signalEMA, min_periods=signalEMA).mean()
 

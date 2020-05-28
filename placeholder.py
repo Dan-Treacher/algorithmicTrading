@@ -17,6 +17,8 @@ Created on %(date)s
 
 import alpaca_trade_api as tradeapi
 import pandas as pd
+import numpy as np
+import string
 
 # Move to correct directory for importing technical indicators
 import os
@@ -41,7 +43,7 @@ tickers = ['AXP', 'AAPL', 'BA', 'CAT', 'CVX', 'CSCO', 'DIS', 'DOW', 'XOM',
            'HD', 'IBM', 'INTC', 'JNJ', 'KO', 'MCD', 'MMM', 'MRK', 'MSFT',
            'NKE', 'PFE', 'PG', 'TRV', 'UTX', 'UNH', 'VZ', 'V', 'WMT', 'WBA']
 
-# Define dates of interest
+# Define dates between which we extract the stock data
 startDate = '2018-01-01'
 endDate = '2020-01-01'
 
