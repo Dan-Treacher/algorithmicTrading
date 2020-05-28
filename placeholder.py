@@ -19,8 +19,11 @@ import alpaca_trade_api as tradeapi
 import pandas as pd
 
 # Next two lines intend to import functions from other folder
-#import sys
-#sys.path.append('//technicalIndicators')
+import os
+import sys
+os.chdir('C:\\Users\\Dan\\Documents\\GitHub\\algorithmicTrading')
+sys.path.append('/algorithmicTrading/technicalIndicators/')
+#from technicalIndicators import ATR
 
 # %% 2. Define constants
 
