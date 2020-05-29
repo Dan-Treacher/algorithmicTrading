@@ -30,7 +30,9 @@ os.chdir('C:\\Users\\Dan\\Documents\\GitHub\\algorithmicTrading')
 from technicalIndicators.ATR import ATR
 from technicalIndicators.MACD import MACD
 from technicalIndicators.Slope import Slope
-
+# Alternatively
+import technicalIndicators as ti
+# ti.ATR.ATR()  # Not too pretty but it works as long as you're in the right dir
 
 # %% 2. Define constants
 
@@ -102,6 +104,5 @@ api.submit_order(
     )
 )
 '''
-
 
 

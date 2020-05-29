@@ -44,6 +44,9 @@ def Slope(dataPoints, n=40):
     from sklearn.linear_model import LinearRegression
     """
 
+    if 'LinearRegression' not in dir():
+        from sklearn.linear_model import LinearRegression
+
     lr = LinearRegression()  # Instantiate a linear regression object
     angles = []  # Each time you add a datapoint, you'll need new slope
 
