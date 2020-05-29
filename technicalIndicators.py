@@ -3,11 +3,15 @@
 Created on %(date)s
 
 @author: Treacher
+
+Contains: MACD, ATR, Slope
 """
 
-# %% 0. Notes
+# %% 0. Import libraries required by functions
 
-# File containing functions to be used in technical analysis of stocks
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
 
 
 # %% 1. Average True Range (ATR)
@@ -149,8 +153,8 @@ def Slope(dataPoints, n=40):
     """
     Parameters
     ----------
-    dataPoints : 1-dimensional DataFrame
-        These are the datapoints you're trying to extract a slope from
+    dataPoints : DataFrame
+        These are the (1D) datapoints you're trying to extract a slope from
     n : int
         The number of points to include in the calculation
             The lower the n value, the more unstable the angle.

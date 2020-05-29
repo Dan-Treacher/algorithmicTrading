@@ -19,7 +19,7 @@ import alpaca_trade_api as tradeapi
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-# from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression
 
 # Move to correct directory for importing technical indicators
 import sys
@@ -27,12 +27,7 @@ import os
 os.chdir('C:\\Users\\Dan\\Documents\\GitHub\\algorithmicTrading')
 
 # Import technical indicators
-from technicalIndicators.ATR import ATR
-from technicalIndicators.MACD import MACD
-from technicalIndicators.Slope import Slope
-# Alternatively
 import technicalIndicators as ti
-# ti.ATR.ATR()  # Not too pretty but it works as long as you're in the right dir
 
 # %% 2. Define constants
 
@@ -72,13 +67,14 @@ for ticker in tickers:
 
 # %% 4. Plot some of the indicators to check it's working
 
-test = MACD(data['MSFT'])  # Placeholder for one of the ticker dataframes
+test = ti.MACD(data['MSFT'])  # Placeholder for one of the ticker dataframes
+test2 = ti.Slope(data['MSFT']['close'])
 
 fig, ax = plt.subplots()
 ax.plot(test['close'], color='blue', label='close')
 plt.legend()
 ax2 = ax.twinx()
-ax2.plot(MACD(test)['macd'], color='red', label='macd')
+ax2.plot(test['macd'], color='red', label='macd')
 plt.legend()
 plt.show()
 
