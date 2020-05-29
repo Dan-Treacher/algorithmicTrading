@@ -19,7 +19,6 @@ import alpaca_trade_api as tradeapi
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
 
 # Move to correct directory for importing technical indicators
 import sys
@@ -58,7 +57,7 @@ data = {}
 for ticker in tickers:
     try:
         # Pull the stock details for that ticker
-        data[ticker] = api.get_aggs('AAPL', 1, 'day', startDate, endDate).df
+        data[ticker] = api.get_aggs(ticker, 1, 'day', startDate, endDate).df
         print('Pulling ohlcv data for {:s}'.format(ticker))
     except:
         # If nothing is found, throw error and continue
@@ -67,17 +66,17 @@ for ticker in tickers:
 
 # %% 4. Plot some of the indicators to check it's working
 
-test = ti.MACD(data['MSFT'])  # Placeholder for one of the ticker dataframes
-test2 = ti.Slope(data['MSFT']['close'])
+df = ti.MACD(data['MSFT'])  # Placeholder for one of the ticker dataframes
+df['slope'] = df['macd'].rolling(window=40).apply(ti.scalarSlope)
 
 fig, ax = plt.subplots()
-ax.plot(test['close'], color='blue', label='close')
-plt.legend()
+ax.plot(df['close'], color='blue', label='close')
 ax2 = ax.twinx()
-ax2.plot(test['macd'], color='red', label='macd')
-plt.legend()
+ax2.plot(df['slope'], color='red', label='macd slope')
+ax2 = ax.twinx()
+ax2.plot(df['macd'], color='green', label='macd')
+fig.legend(loc='upper left', bbox_to_anchor=(0,1), bbox_transform=ax.transAxes)
 plt.show()
-
 
 # %% X.
 
@@ -100,5 +99,3 @@ api.submit_order(
     )
 )
 '''
-
-

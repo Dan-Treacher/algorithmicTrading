@@ -149,7 +149,7 @@ Basic idea:
 '''
 
 
-def Slope(dataPoints, n=40):
+def vectorSlope(dataPoints, n=40):
     """
     Parameters
     ----------
@@ -196,3 +196,51 @@ def Slope(dataPoints, n=40):
     slope_angle = (np.rad2deg(np.arctan(np.array(angles))))
 
     return slope_angle
+
+# %% 3. Rolling slope of data
+
+
+'''
+Function to calculate the scalar slope of a rolling window of n datapoints
+
+Basic idea:
+    Give the function a window of n datapoints of e.g. price, MACD or whatever
+    Use SciKit Learn linear regression to work out a straight line fit
+    Use trigonometry to calculate what the angle is from the straight line
+'''
+
+
+def scalarSlope(dataPoints):
+    """
+    Parameters
+    ----------
+    dataPoints : DataFrame
+        These are the (1D) datapoints you're trying to extract a slope from
+
+    Returns
+    -------
+    angle : float
+        Slope of the line incoporating n points
+
+    Package requirements
+    -------
+    pandas as pd\n
+    numpy as np\n
+    from sklearn.linear_model import LinearRegression
+    """
+
+    lr = LinearRegression()  # Instantiate a linear regression object
+
+    # x and y data
+    x = np.arange(len(dataPoints))
+    y = dataPoints
+
+    # Scale the axes so they're not all squished up at x=0
+    y_scaled = (y - y.min())/(y.max() - y.min())
+    x_scaled = (x - x.min())/(x.max() - x.min())
+
+    lr.fit(x_scaled[:, None], y_scaled[:, None])
+    angle = np.rad2deg(np.arctan(np.array(lr.coef_[0][0])))
+    
+    return angle
+        
