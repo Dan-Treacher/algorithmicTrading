@@ -63,16 +63,23 @@ for ticker in tickers:
         # If nothing is found, throw error and continue
         print('Error encountered pulling ohlcv data for {:s}'.format(ticker))
 
+# %% 4. Loop through the data and append the technical indicator columns
 
-# %% 4. Plot some of the indicators to check it's working
+tickers = list(data.keys())  # Any tickers that didn't load shouldn't survive
+for ticker in tickers:
+    data[ticker] = ti.MACD(data[ticker])
+    data[ticker]['macd slope'] = data[ticker]['macd'].rolling(window=40).apply(ti.scalarSlope)
+    print('Adding MACD and MACD slope indicators for {:s}'.format(ticker))
 
-df = ti.MACD(data['MSFT'])  # Placeholder for one of the ticker dataframes
-df['slope'] = df['macd'].rolling(window=40).apply(ti.scalarSlope)
+
+# %% 5. Plot some of the indicators to check it's working
+
+df = data['PFE']  # Placeholder for one of the ticker dataframes
 
 fig, ax = plt.subplots()
 ax.plot(df['close'], color='blue', label='close')
 ax2 = ax.twinx()
-ax2.plot(df['slope'], color='red', label='macd slope')
+ax2.plot(df['macd slope'], color='red', label='macd slope')
 ax2 = ax.twinx()
 ax2.plot(df['macd'], color='green', label='macd')
 fig.legend(loc='upper left', bbox_to_anchor=(0,1), bbox_transform=ax.transAxes)
