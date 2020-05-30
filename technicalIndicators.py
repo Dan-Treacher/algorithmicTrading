@@ -244,3 +244,32 @@ def scalarSlope(dataPoints):
     
     return angle
         
+# %% 4. Stochastic Oscillator
+
+def Stochastic(ohlcv, n=14):
+    """
+    ohlcv : Dataframe
+        Contains the open, high, low, close and volume information for an asset
+            Must contain columns called ['High', 'Low', 'Close']
+    n : int
+        Number of periods for the low and high minimum and maximums to be computed in
+            Typical value = 14 periods
+
+    Returns
+    -------
+    stochastic : Dataframe
+        Stochastic oscillator of the asset
+
+    Package requirements
+    -------
+    pandas as pd
+    """
+
+    df = ohlcv.copy()
+    df.columns = map(str.lower, df.columns)  # Force columns names lowercase
+
+    K = (df['close'] - df['low'].rolling(window=n).min()) / \
+    (df['high'].rolling(window=n).max() - df['low'].rolling(window=n).min())
+    df['stochastic'] = K*100
+
+    return df

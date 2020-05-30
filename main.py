@@ -42,8 +42,8 @@ tickers = ['AXP', 'AAPL', 'BA', 'CAT', 'CVX', 'CSCO', 'DIS', 'DOW', 'XOM',
            'NKE', 'PFE', 'PG', 'TRV', 'UTX', 'UNH', 'VZ', 'V', 'WMT', 'WBA']
 
 # Define dates between which we extract the stock data
-startDate = '2018-01-01'
-endDate = '2020-01-01'
+startDate = '2019-01-01'
+endDate = '2020-05-28'
 
 
 # %% 3. Connect to api and pull data for the defined tickers
@@ -69,19 +69,18 @@ tickers = list(data.keys())  # Any tickers that didn't load shouldn't survive
 for ticker in tickers:
     data[ticker] = ti.MACD(data[ticker])
     data[ticker]['macd slope'] = data[ticker]['macd'].rolling(window=40).apply(ti.scalarSlope)
-    print('Adding MACD and MACD slope indicators for {:s}'.format(ticker))
+    data[ticker] = ti.Stochastic(data[ticker])
+    print('Adding technical indicators for {:s}'.format(ticker))
 
 
-# %% 5. Plot some of the indicators to check it's working
+# %% 6. Plot some of the indicators to check it's working
 
-df = data['PFE']  # Placeholder for one of the ticker dataframes
+df = ti.Stochastic(data['MSFT'], n=28)  # Placeholder for one of the ticker dataframes
 
 fig, ax = plt.subplots()
 ax.plot(df['close'], color='blue', label='close')
 ax2 = ax.twinx()
-ax2.plot(df['macd slope'], color='red', label='macd slope')
-ax2 = ax.twinx()
-ax2.plot(df['macd'], color='green', label='macd')
+ax2.plot(df['stochastic'], color='red', label='stochastic')
 fig.legend(loc='upper left', bbox_to_anchor=(0,1), bbox_transform=ax.transAxes)
 plt.show()
 
