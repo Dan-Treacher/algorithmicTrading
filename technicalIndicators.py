@@ -131,10 +131,9 @@ def MACD(ohlcv, fastEMA=12, slowEMA=26, signalEMA=9, returnEMAs=False):
     df['signal'] = df['macd'].ewm(span=signalEMA, min_periods=signalEMA).mean()
 
     if returnEMAs is False:
-        df.drop(['fastMA', 'slowMA'], axis=1, inplace=True)
-        return df
+        return df[['signal', 'macd']]
     else:
-        return df
+        return df[['slowMA', 'fastMA', 'signal', 'macd']]
 
 # %% 3. Slope of data
 
@@ -323,7 +322,7 @@ def ADX(ohlcv, n=14):
     df = ohlcv.copy()
     
     # Need arg3 = True In line below, so the true range is returned as well as ATR
-    df['TR'] = ti.ATR(df, 14, True)['TR']
+    df['TR'] = ATR(df, 14, True)['TR']
 
     # Define the directional movement of the prices based on the differences in high and low
     df['DMplus'] = np.where((df['high']-df['high'].shift(1)) > (df['low'].shift(1)-df['low']), df['high']-df['high'].shift(1), 0)
