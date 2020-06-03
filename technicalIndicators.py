@@ -246,6 +246,16 @@ def scalarSlope(dataPoints):
         
 # %% 4. Stochastic Oscillator
 
+
+'''
+Stochasic indicator describes whether a certain asset is overbought or undersold
+
+It's value is bounded by 0 - 100 with values > 80 considered overbought and
+values < 20 being oversold. Note that this doens't imply an immediate reversal
+as these conditions may persist for a long period of time.
+'''
+
+
 def Stochastic(ohlcv, n=14):
     """
     ohlcv : Dataframe
@@ -273,3 +283,105 @@ def Stochastic(ohlcv, n=14):
     df['stochastic'] = K*100
 
     return df
+
+# %% 5. Average Directional Index
+
+
+'''
+Average Directional Indicator is a measure of the strength of a trend.
+
+Value ranges between 0 and 100, with the following rough distinctions:
+    0 - 25 = Absent or weak trend
+    26 - 50 = Strong trend
+    51 - 75 = Very strong trend
+    76 - 100 =  Extremely strong trend
+
+Note that for ADX < 25, it's 'common' for price to get stuck in a range bounded
+by a support from below and the resistance level above.
+'''
+
+
+def ADX(ohlcv, n=14):
+    """
+    ohlcv : Dataframe
+        Contains the open, high, low, close and volume information for an asset
+            Must contain columns called ['High', 'Low', 'Close']
+    n : int
+        Number of periods for the smoothed average windows
+            Typical value = 14 periods
+
+    Returns
+    -------
+    ADX : Dataframe
+        Average directional indicator of the asset
+
+    Package requirements
+    -------
+    pandas as pd
+    """
+
+    df = ohlcv.copy()
+    
+    # Need arg3 = True In line below, so the true range is returned as well as ATR
+    df['TR'] = ti.ATR(df, 14, True)['TR']
+
+    # Define the directional movement of the prices based on the differences in high and low
+    df['DMplus'] = np.where((df['high']-df['high'].shift(1)) > (df['low'].shift(1)-df['low']), df['high']-df['high'].shift(1), 0)
+    df['DMplus'] = np.where(df['DMplus'] < 0, 0, df['DMplus'])
+    df['DMminus'] = np.where((df['low'].shift(1)-df['low']) > (df['high']-df['high'].shift(1)), df['low'].shift(1)-df['low'], 0)
+    df['DMminus'] = np.where(df['DMminus'] < 0, 0, df['DMminus'])
+    
+    # Define lists that will contain the n period sums of the true range and directional movements up and down
+    TRn = []
+    DMplusN = []
+    DMminusN = []
+    TR = df['TR'].tolist()
+    DMplus = df['DMplus'].tolist()
+    DMminus = df['DMminus'].tolist()
+    
+    for i in range(len(df)):
+        # No data until n periods have elapsed
+        if i < n:
+            TRn.append(np.NaN)
+            DMplusN.append(np.NaN)
+            DMminusN.append(np.NaN)
+        # First entry is the simple rolling sum
+        elif i == n:
+            TRn.append(df['TR'].rolling(n).sum().tolist()[n])
+            DMplusN.append(df['DMplus'].rolling(n).sum().tolist()[n])
+            DMminusN.append(df['DMminus'].rolling(n).sum().tolist()[n])
+        # Subsequent values require the smoothing sum function
+        elif i > n:
+            TRn.append(TRn[i-1] - (TRn[i-1]/n) + TR[i])
+            DMplusN.append(DMplusN[i-1] - (DMplusN[i-1]/n) + DMplus[i])
+            DMminusN.append(DMminusN[i-1] - (DMminusN[i-1]/n) + DMminus[i])
+    
+    # Include the adjusted sums into the dataframe
+    df['TRn'] = np.array(TRn)
+    df['DMplusN'] = np.array(DMplusN)
+    df['DMminusN'] = np.array(DMminusN)
+    
+    # Remaining calculations have 'consistent' formula, so no looped treatment necessary
+    df['DIplusN'] = 100*(df['DMplusN'] / df['TRn'])
+    df['DIminusN'] = 100*(df['DMminusN'] / df['TRn'])
+    df['DIdiff'] = abs(df['DIplusN'] - df['DIminusN'])
+    df['DIsum'] = df['DIplusN'] + df['DIminusN']
+    df['DX'] = 100*(df['DIdiff'] / df['DIsum'])
+    
+    # ADX has inconsistent foruma, so need to the smoothing thing as seen earlier
+    ADX = []
+    DX = df['DX'].tolist()
+    for j in range(len(df)):
+        # 2n nan values because you're looking at a rolled n window of a rolled n window hence doubling up on nan entries
+        if j < 2*n-1:
+            ADX.append(np.NaN)
+        # Just the regular mean for the first valid entry
+        elif j == 2*n-1:
+            ADX.append(df['DX'][j-n+1:j+1].mean())
+        # Smoothing for the remaining entries
+        elif j > 2*n-1:
+            ADX.append(((n-1)*ADX[j-1] + DX[j])/n)
+
+    df['ADX'] = np.array(ADX)
+    
+    return df['ADX']

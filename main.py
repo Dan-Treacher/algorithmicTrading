@@ -84,6 +84,7 @@ ax2.plot(df['stochastic'], color='red', label='stochastic')
 fig.legend(loc='upper left', bbox_to_anchor=(0,1), bbox_transform=ax.transAxes)
 plt.show()
 
+
 # %% X.
 
 '''
