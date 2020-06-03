@@ -71,6 +71,7 @@ df = data['AAPL'].copy()
 df['ADX'] = ti.ADX(df, n=14)  # Placeholder for one of the ticker dataframes
 df[['signal', 'macd']] = ti.MACD(df, 12, 26, 9)
 
+# Plot close price against ADX line
 fig1, ax1 = plt.subplots()
 ax1.plot(df['close'], linestyle='--', color='blue', label='close')
 ax2 = ax1.twinx()
@@ -79,6 +80,7 @@ ax1.set_xlabel('Date'), ax1.set_ylabel('Close price ($)'), ax2.set_ylabel('ADX')
 fig1.legend(loc='upper left', bbox_to_anchor=(0,1), bbox_transform=ax.transAxes)
 plt.show()
 
+# Plot close price against macd and signal lines
 fig2, ax3 = plt.subplots()
 ax3.plot(df['close'], linestyle='--', color='blue', label='close')
 ax4 = ax3.twinx()
