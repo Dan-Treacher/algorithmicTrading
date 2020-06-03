@@ -77,7 +77,7 @@ ax1.plot(df['close'], linestyle='--', color='blue', label='close')
 ax2 = ax1.twinx()
 ax2.plot(df['ADX'], color='red', label='ADX')
 ax1.set_xlabel('Date'), ax1.set_ylabel('Close price ($)'), ax2.set_ylabel('ADX')
-fig1.legend(loc='upper left', bbox_to_anchor=(0,1), bbox_transform=ax.transAxes)
+fig1.legend(loc='upper left', bbox_to_anchor=(0,1), bbox_transform=ax1.transAxes)
 plt.show()
 
 # Plot close price against macd and signal lines
@@ -87,7 +87,7 @@ ax4 = ax3.twinx()
 ax4.plot(df['macd'], color='red', label='macd')
 ax4.plot(df['signal'], color='black', label='signal')
 ax3.set_xlabel('Date'), ax3.set_ylabel('Close price ($)'), ax4.set_ylabel('macd and signal')
-fig2.legend(loc='upper left', bbox_to_anchor=(0,1), bbox_transform=ax.transAxes)
+fig2.legend(loc='upper left', bbox_to_anchor=(0,1), bbox_transform=ax3.transAxes)
 plt.show()
 
 # First date when ADX > 25
@@ -106,31 +106,64 @@ for ticker in tickers:
 # %% 6. Define the trading strategy
 
 
-def trade_signal(dfWithIndicators, l_s): # l_s is the long or short string (Need to know if you're already long or short for a certain position at the present time)
+def trade_signal(dfWithIndicators, longOrShort):
+
     "function to generate signal"
     signal = ""  # If there's no clear signal, return blank (no trade)
     df = copy.deepcopy(dfWithIndicators)
 
-    # If you don't have an existing position for the current asset you're analysing    
-    if l_s == "":  
-        if df["bar_num"].tolist()[-1]>=nbars and df["macd"].tolist()[-1]>df["macd_sig"].tolist()[-1] and df["macd_slope"].tolist()[-1]>df["macd_sig_slope"].tolist()[-1]:
-            signal = "Buy"
-        elif df["bar_num"].tolist()[-1]<=-nbars and df["macd"].tolist()[-1]<df["macd_sig"].tolist()[-1] and df["macd_slope"].tolist()[-1]<df["macd_sig_slope"].tolist()[-1]:
-            signal = "Sell"
-            
-    elif l_s == "long":  # If we have an existing long position
-        if df["bar_num"].tolist()[-1]<=-nbars and df["macd"].tolist()[-1]<df["macd_sig"].tolist()[-1] and df["macd_slope"].tolist()[-1]<df["macd_sig_slope"].tolist()[-1]:
-            signal = "Close_Sell"  # If you want to close and then immediately go short because the indicators are implying sell
-        elif df["macd"].tolist()[-1]<df["macd_sig"].tolist()[-1] and df["macd_slope"].tolist()[-1]<df["macd_sig_slope"].tolist()[-1]:
-            signal = "Close"  # With no clear signal, just close the position
-            
-                # Same as long, but in reverse
-    elif l_s == "short":
-        if df["bar_num"].tolist()[-1]>=nbars and df["macd"].tolist()[-1]>df["macd_sig"].tolist()[-1] and df["macd_slope"].tolist()[-1]>df["macd_sig_slope"].tolist()[-1]:
-            signal = "Close_Buy"
-        elif df["macd"].tolist()[-1]>df["macd_sig"].tolist()[-1] and df["macd_slope"].tolist()[-1]>df["macd_sig_slope"].tolist()[-1]:
-            signal = "Close"
+    # With no existing position for the current asset
+    if longOrShort == '':
+        if (df['ADX'][-1] > 25) and (df['macd'][-1] > df['signal'][-1]):
+            signal = 'Buy'
+        elif (df['ADX'][-1] > 25) and (df['macd'][-1] < df['signal'][-1]):
+            signal = 'Sell'
+
+    # If you have an existing long position
+    elif longOrShort == 'long':
+        # macd has fallen below the signal and the trend is still significant
+        if (df['ADX'][-1] > 25) and (df['macd'][-1] < df['signal'][-1]):
+            signal = 'Close_Sell'
+        # Exit conditions (lacking trend while macd falls below signal)
+        elif df['macd'][-1] < df['signal'][-1]:
+            signal = 'Close'
+
+    # If you have an existing short position
+    elif longOrShort == 'Short':
+        if (df['ADX'][-1] > 25) and (df['macd'][-1] > df['signal'][-1]):
+            signal = 'Buy'
+        # Exit the short position if the macd rises above signal
+        elif df['macd'][-1] > df['signal'][-1]:
+            signal = 'Close'
+
     return signal
+
+
+# %% 7. Quick test of strategy function
+
+# Need to feed the function values of the strategy as though it were live
+# api.list_positions()  # To pull positions through the alpaca api
+longOrShort = ''
+
+# Offset start because there will be a bunch of nan values there
+for i in range(28, len(data['AAPL'])):
+    # Each time this executes it's like the data from a new day has been added
+    historicalData = data['MSFT'].copy().iloc[:i].copy()
+    signal = trade_signal(historicalData, longOrShort)
+    
+    if signal == 'Buy':
+        api.submit_order(symbol='AAPL', 
+                         side='buy',
+                         type='market',
+                         qty='100',
+                         time_in_force='day',
+                         order_class='bracket',
+                         take_profit=dict(
+                             limit_price='305.0'),  # comma inside the braket?
+                         stop_loss=dict(
+                             stop_price='295.5',
+                             limit_price='295.5')  # comma inside the braket?
+                         )
 
 
 # %% X.
