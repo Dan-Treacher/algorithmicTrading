@@ -1,5 +1,5 @@
 # algorithmicTrading
-Efforts to automate day trading and a few other things
+Efforts to automate day trading based on technical indicators
 
 technicalIndicators_dir contains early versions of some of the technical indicators in technicalIndicators.py but in separate scripts
 
