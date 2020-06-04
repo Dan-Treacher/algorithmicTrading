@@ -16,6 +16,7 @@ Created on %(date)s
 # %% 1. Import libraries
 
 import alpaca_trade_api as tradeapi
+import copy  # For copying dictionaries
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -59,6 +60,8 @@ for ticker in tickers:
     try:
         # Pull the stock details for that ticker
         data[ticker] = api.get_aggs(ticker, 1, 'day', startDate, endDate).df
+        # Calculate their daily return
+        data[ticker]['daily return'] = data[ticker]['close'].pct_change()
         print('Pulling ohlcv data for {:s}'.format(ticker))
     except:
         # If nothing is found, throw error and continue
@@ -109,9 +112,9 @@ for ticker in tickers:
 def trade_signal(dfWithIndicators, longOrShort):
 
     "function to generate signal"
-    signal = ""  # If there's no clear signal, return blank (no trade)
+    signal = ''  # If there's no clear signal, return blank (no trade)
     df = copy.deepcopy(dfWithIndicators)
-
+    
     # With no existing position for the current asset
     if longOrShort == '':
         if (df['ADX'][-1] > 25) and (df['macd'][-1] > df['signal'][-1]):
@@ -144,27 +147,46 @@ def trade_signal(dfWithIndicators, longOrShort):
 # Need to feed the function values of the strategy as though it were live
 # api.list_positions()  # To pull positions through the alpaca api
 longOrShort = ''
+positionTaken = []
+positionDates = []
+k = 0
+data['AAPL']['position'] = 0
+trades = data['AAPL']['position'].copy()
 
 # Offset start because there will be a bunch of nan values there
-for i in range(28, len(data['AAPL'])):
+for i in range(34, len(data['AAPL'])):
     # Each time this executes it's like the data from a new day has been added
-    historicalData = data['MSFT'].copy().iloc[:i].copy()
+    historicalData = data['AAPL'].iloc[33:i].copy()
     signal = trade_signal(historicalData, longOrShort)
+    print(historicalData.index[-1], signal)
     
+    # With no position and a buy signal, enter a position
     if signal == 'Buy':
-        api.submit_order(symbol='AAPL', 
-                         side='buy',
-                         type='market',
-                         qty='100',
-                         time_in_force='day',
-                         order_class='bracket',
-                         take_profit=dict(
-                             limit_price='305.0'),  # comma inside the braket?
-                         stop_loss=dict(
-                             stop_price='295.5',
-                             limit_price='295.5')  # comma inside the braket?
-                         )
+        trades.iloc[i] = 1
+        #positionDates.append(historicalData.index[k]) 
 
+    if signal == '':
+        trades.iloc[i] = 0
+        #positionDates.append(historicalData.index[k]) 
+
+    if signal == 'Sell':
+        trades.iloc[i] = -1
+        #positionDates.append(historicalData.index[k])
+    
+    k += 1
+    
+    # If you're in a position
+    #if positionTaken == 1:
+    #    if signal == 'Buy':
+    #        money.append((1 + historicalData['daily return'][i-34]).cumprod())
+    #    if signal == 'Sell':
+    #        money.append((1 - historicalData['daily return'][i-34]).cumprod())
+
+# %%
+
+trades.plot()
+# Check how you're calculating ADX - if it just measures the strength of a trend
+# then why does it have a minima when the price trend direction changes?
 
 # %% X.
 
